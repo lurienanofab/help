@@ -1,0 +1,206 @@
+﻿@using Help.Models;
+@model HelpdeskModel
+@{
+    ViewBag.Title = "Helpdesk";
+}
+
+@section styles{
+    <link rel="stylesheet" href="/ostclient/css/ticket.css" />
+}
+
+<div class="helpdesk" data-apiurl="/ostclient/ajax.aspx" data-name="@Model.GetCurrentName()" data-email="@Model.GetCurrentEmail()" data-queue="@Model.GetQueue()" data-priority="@Model.GetPriority()">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Add Helpdesk Ticket</h3>
+        </div>
+        <div class="panel-body">
+            <div class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Topic</label>
+                    <div class="col-sm-3">
+                        <select class="form-control topic-select">
+                            <option value="chemical">Chemical</option>
+                            <option value="supplies">Lab Supplies</option>
+                            <option value="equipment">Non-Interlocked Equipment</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <div style="margin-top: 10px; display: none;" class="other-textbox-container">
+                            <input type="text" class="form-control other-topic-textbox" placeholder="Please enter a topic..." />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Location</label>
+                    <div class="col-sm-3">
+                        <select class="form-control location-select">
+                            <option value="clean-room">Clean Room</option>
+                            <option value="robin">ROBIN</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <div style="margin-top: 10px; display: none;" class="other-textbox-container">
+                            <input type="text" class="form-control other-location-textbox" placeholder="Please enter a location..." />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Description</label>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control subject-textbox" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Reported Issue</label>
+                    <div class="col-sm-4">
+                        <textarea class="form-control message-textarea" rows="4" cols="4"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-11">
+                        <button type="button" class="btn btn-primary create-ticket-button">Create Ticket</button>
+                        <img class="create-ticket-working" src="/common/images/ajax-loader-2.gif" alt="" style="display: none;" />
+                    </div>
+                </div>
+                <div class="notify"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">My Tickets</h3>
+        </div>
+        <div class="panel-body">
+            <div class="well">
+                <p>The tickets below were created using the email address <strong class="search-email">@Model.GetCurrentEmail()</strong>. You may also search for tickets by entering an alternate email address. <em style="color: #808080;">(% may be used as a wildcard)</em></p>
+                <div class="form-inline">
+                    <div class="form-group">
+                        <input type="text" class="form-control email-search-textbox" style="width: 250px;" value="@Model.GetCurrentEmail()" />
+                    </div>
+                    <button type="button" class="btn btn-default email-search-button">Search</button>
+                </div>
+            </div>
+            <div class="message"></div>
+            <table class="table table-hover ticket-table">
+                <thead>
+                    <tr>
+                        <th>Ticket #</th>
+                        <th>Email</th>
+                        <th>Description</th>
+                        <th>ResourceID</th>
+                        <th>Created</th>
+                        <th>Assigned</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Ticket Detail</h3>
+        </div>
+        <div class="panel-body">
+            <div class="ticket-detail">
+                <div class="detail-message" style="min-height: 24px;">
+                    <em style="color: #808080;">Click a Ticket # to view detail.</em>
+                </div>
+                <div class="container-fluid" style="display: none;">
+                    <div class="detail-header">
+                        <img src="/ostclient/images/lnf-logo.png" alt="LNF Logo" />
+                        <img src="/ostclient/images/helpdesk-logo.jpg" alt="Helpdesk Logo" />
+                    </div>
+                    <hr />
+                    <div class="ticket-info">
+                        <h4>Ticket #<span data-property="info.ticketID"></span></h4>
+                        <div class="ticket-section">
+                            <div class="form-horizontal">
+                                <div class="form-group">
+                                    <label class="col-md-2 control-label">Status</label>
+                                    <div class="col-md-2 property-value" data-property="info.status"></div>
+                                    <label class="col-md-2 control-label">Name</label>
+                                    <div class="col-md-2 property-value" data-property="info.name"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-2 control-label">Priority</label>
+                                    <div class="col-md-2 property-value" data-property="info.priority"></div>
+                                    <label class="col-md-2 control-label">Email</label>
+                                    <div class="col-md-2 property-value" data-property="info.email"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-2 control-label">Department</label>
+                                    <div class="col-md-2 property-value" data-property="info.dept_name"></div>
+                                    <label class="col-md-2 control-label">Phone</label>
+                                    <div class="col-md-2 property-value" data-property="info.phone"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-2 control-label">Created</label>
+                                    <div class="col-md-2 property-value" data-property="info.created" data-dateformat="MM/DD/YYYY h:mm a"></div>
+                                    <label class="col-md-2 control-label">Source</label>
+                                    <div class="col-md-2 property-value" data-property="info.source"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <h4>Subject: <span data-property="info.subject"></span></h4>
+                        <div class="ticket-section">
+                            <div class="form-horizontal">
+                                <div class="form-group">
+                                    <label class="col-md-2 control-label">Assigned Staff</label>
+                                    <div class="col-md-2 property-value" data-property="info.assigned_name"></div>
+                                    <label class="col-md-2 control-label">Help Topic</label>
+                                    <div class="col-md-2 property-value" data-property="info.help_topic"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-2 control-label">Last Response</label>
+                                    <div class="col-md-2 property-value" data-property="info.last_response"></div>
+                                    <label class="col-md-2 control-label">IP Address</label>
+                                    <div class="col-md-2 property-value" data-property="info.ip_address"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-2 control-label">Due Date</label>
+                                    <div class="col-md-2 property-value" data-property="info.due_date" data-dateformat="MM/DD/YYYY h:mm a"></div>
+                                    <label class="col-md-2 control-label">Last Message</label>
+                                    <div class="col-md-2 property-value" data-property="info.last_message" data-dateformat="MM/DD/YYYY h:mm a"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ticket-thread">
+                        <h4>Ticket Thread</h4>
+                        <div class="ticket-section"></div>
+                    </div>
+
+                    <div class="ticket-form">
+                        <form>
+                            <div class="form-group">
+                                <label for="newMessageName">Name</label>
+                                <input type="text" class="form-control new-message-name" value="@Model.GetCurrentName()" id="newMessageName" readonly="readonly" />
+                            </div>
+                            <div class="form-group">
+                                <label for="newMessageEmail">Email</label>
+                                <input type="text" class="form-control new-message-email" value="@Model.GetCurrentEmail()" id="newMessageEmail" readonly="readonly" />
+                            </div>
+                            <div class="form-group">
+                                <label for="newMessageText">Message</label>
+                                <textarea class="form-control new-message-text" id="newMessageText" cols="5" rows="5"></textarea>
+                            </div>
+                            <button type="button" class="btn btn-primary post-message">Post Message</button>
+                            <img class="new-message-working" src="/common/images/ajax-loader-2.gif" alt="" style="display: none;" />
+                            <div class="new-message-error"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script src="@Url.Content("~/Scripts/jquery.helpdesk.js?v=20151215")"></script>
+    <script src="/ostclient/js/jquery.ticket.js?v=20151215"></script>
+
+    <script>
+        $(".helpdesk").helpdesk();
+    </script>
+}

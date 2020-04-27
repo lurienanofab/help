@@ -1,0 +1,48 @@
+﻿@using Help.Models;
+@using LNF.Data;
+@model CalendarModel
+@{
+    ViewBag.Title = "Calendar";
+    string cal = Model.Calendar;
+    string calUrl = string.Empty;
+    string calSubscribeUrl = string.Empty;
+    string title = string.Empty;
+
+    switch (cal)
+    {
+        case "facility":
+            title = string.Format("LNF {0} Calendar", "Facility");
+            calUrl = "http://www.google.com/calendar/embed?src=lnf.umich.edu_v22qbkmll9fc7nug1hin4s498k%40group.calendar.google.com&ctz=America/New_York";
+            calSubscribeUrl = "https://www.google.com/calendar/render?cid=lnf.umich.edu_v22qbkmll9fc7nug1hin4s498k%40group.calendar.google.com";
+            break;
+        default:
+            title = string.Format("LNF {0} Calendar", "Staff");
+            calUrl = "http://www.google.com/calendar/embed?src=lnf.umich.edu_591nam02e4ngc678e6kuslct3g%40group.calendar.google.com&ctz=America/New_York";
+            calSubscribeUrl = "https://www.google.com/calendar/render?cid=lnf.umich.edu_591nam02e4ngc678e6kuslct3g%40group.calendar.google.com";            
+            break;
+    }
+}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">@title</h3>
+    </div>
+    <div class="panel-body">
+        @if (Model.CurrentUser.HasPriv(ClientPrivilege.Staff))
+        {
+            <div class="alert alert-warning" role="alert">
+                The mnfstaff Google account is no longer used to access this calendar. We have had problems with this account getting hacked. As a security best practice, it is always better that each person uses their own username and password to get access, instead of everyone sharing one set of credentials. To edit this calendar click the <b>Add Event</b> link below and log in using your lnf.umich.edu Google account. Please contact Jim Getty (<a href="mailto:jgett@lnf.umich.edu">jgett@lnf.umich.edu</a>) if you need an account, don't remember your password, or have any questions.
+            </div>
+            <div style="margin-bottom: 10px;">
+                <a href="@calSubscribeUrl" class="edit-cal">Add Event</a> (LNF Google account required)
+            </div>
+        }
+        else
+        {
+            <div style="margin-bottom: 10px;">
+                <a href="@calSubscribeUrl" target="_blank">Subscribe to @ViewBag.Calendar</a> (requires a Google account)
+            </div>
+        }
+        <iframe class="lnfcal" src="@calUrl" style="border: 0; width: 100%; height: 800px;" frameborder="0" scrolling="no"></iframe>
+    </div>
+</div>

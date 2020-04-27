@@ -1,0 +1,84 @@
+﻿@model Help.Models.DirectoryModel
+@{
+    ViewBag.Title = "Directory";
+}
+
+@section styles{
+    <style>
+        .table-hover > tbody > tr.deleted > td {
+            background-color: #ffdddd;
+        }
+
+        .table-hover > tbody > tr.deleted:hover > td {
+            background-color: #ffcccc;
+        }
+    </style>
+}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">LNF Staff Directory</h3>
+    </div>
+    <div class="panel-body">
+        @if (Model.CanAdd())
+        {
+            <div style="margin-bottom: 20px;">
+                @Html.RouteLink("Add Staff", "DirectoryEdit", null, new { @class = "btn btn-primary" })
+            </div>
+        }
+        @if (Model.CanViewDeleted())
+        {
+            <label style="margin-bottom: 20px;">
+                @Html.CheckBoxFor(x => x.ViewDeleted, new { @class = "view-deleted" }) View Deleted
+            </label>
+        }
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Staff Name</th>
+                    <th>Work Hours</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Office</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.GetDirectoryItems())
+                {
+                    <tr class="@Html.Raw(item.Deleted ? "deleted" : string.Empty)">
+                        @if (Model.IsReadOnly(item))
+                        {
+                            <td>@item.DisplayName</td>
+                        }
+                        else
+                        {
+                            <td>@Html.RouteLink(item.DisplayName, "DirectoryEdit", new { StaffDirectoryID = item.StaffDirectoryID }, null)</td>
+                        }
+                        <td>@Html.Raw(Model.GetWorkingHoursText(item))</td>
+                        <td><a href="mailto:@item.ContactEmail">@item.ContactEmail</a></td>
+                        <td><a href="tel:@Model.GetPhone(item)">@Model.GetPhone(item, "{0}-{1}-{2}")</a></td>
+                        <td>@item.Office</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        $(".view-deleted").on("change", function (e) {
+            var chk = $(this);
+            
+            var now = new Date();
+            var expires = new Date(now.setFullYear(now.getFullYear() + 1));
+
+            if (chk.prop("checked"))
+                $.cookie("directory", '{"ViewDeleted":true}', { "expires": 365 });
+            else
+                $.cookie("directory", '{"ViewDeleted":false}', { "expires": 365 });
+
+            window.location.reload();
+        });
+    </script>
+}

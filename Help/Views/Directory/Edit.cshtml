@@ -1,0 +1,181 @@
+﻿@using Help.Models;
+@model DirectoryModel
+@{
+    ViewBag.Title = "Directory/Edit";
+}
+
+@section styles{
+    <link rel="stylesheet" href="/common/scripts/jquery/jquery-ui-latest/css/smoothness/jquery-ui-latest.min.css" />
+    <link rel="stylesheet" href="/common/scripts/jquery/jquery.timepicker/css/default.css" />
+
+    <style>
+        .directory-edit-table {
+            border-collapse: collapse;
+        }
+
+            .directory-edit-table th {
+                padding: 5px;
+                border: solid 1px #ddd;
+                background-color: #fafafa;
+                text-align: right;
+            }
+
+            .directory-edit-table td {
+                padding: 5px;
+                border: solid 1px #ddd;
+            }
+
+        .table.hours-table > thead > tr > th,
+        .table.hours-table > tbody > tr > th {
+            background-color: #f8f8f8;
+            vertical-align: middle;
+        }
+
+        .table.hours-table > tbody > tr > td {
+            vertical-align: middle;
+        }
+
+        .ui-datepicker.ui-widget-content {
+            box-shadow: 2px 2px 3px #bbb;
+            border-color: #ddd;
+        }
+
+        .ui-timepicker-div dl dt {
+            font-weight: normal;
+        }
+
+        .ui-timepicker-div dl dd.ui_tpicker_hour,
+        .ui-timepicker-div dl dd.ui_tpicker_minute {
+            margin-top: 6px;
+        }
+
+        .ui-timepicker-div .ui-widget-header {
+            background-image: none;
+            background-color: #f5f5f5;
+            border-color: #ddd;
+        }
+    </style>
+}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        @if (Model.StaffDirectoryID == 0)
+        {
+            <h3 class="panel-title">@Html.RouteLink("Directory", "Directory") / New</h3>
+        }
+        else
+        {
+            <h3 class="panel-title">@Html.RouteLink("Directory", "Directory") / Edit: @Model.GetDisplayName() [@Model.GetClientID()]</h3>
+        }
+    </div>
+    <div class="panel-body">
+        @using (Html.BeginForm("Edit", "Directory", FormMethod.Post, new { @class = "form-horizontal" }))
+        {
+            if (Model.StaffDirectoryID == 0)
+            {
+                <div class="form-group">
+                    <label class="col-sm-1 control-label">Staff</label>
+                    <div class="col-sm-5">
+                        @Html.DropDownListFor(x => x.ClientID, Model.GetStaffSelectListItems(), new { @class = "form-control" })
+                    </div>
+                </div>
+            }
+            <div class="form-group">
+                <label class="col-sm-1 control-label">Hours</label>
+                <div class="col-sm-5">
+                    <table class="table table-bordered hours-table">
+                        <tbody>
+                            <tr>
+                                <th colspan="2">&nbsp;</th>
+                                <th colspan="2" style="text-align: center;">Morning</th>
+                                <th colspan="2" style="text-align: center;">Afternoon</th>
+                            </tr>
+                            <tr>
+                                <th colspan="2">&nbsp;</th>
+                                <th style="text-align: center;">Start</th>
+                                <th style="text-align: center;">End</th>
+                                <th style="text-align: center;">Start</th>
+                                <th style="text-align: center;">End</th>
+                            </tr>
+                            @foreach (var timeInfo in Model.GetStaffTime())
+                            {
+                                <tr>
+                                    <th style="text-align: right;">@timeInfo.WorkHoursDayName()</th>
+                                    <td style="text-align: center;">@Html.WorkHoursDayCheckBox(timeInfo)</td>
+                                    <td class="morning-start">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.MorningStart)</td>
+                                    <td class="morning-end">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.MorningEnd)</td>
+                                    <td class="afternoon-start">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.AfternoonStart)</td>
+                                    <td class="afternoon-end">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.AfternoonEnd)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-1 control-label">Phone</label>
+                <div class="col-sm-5">
+                    <div class="form-inline">
+                        @Html.TextBoxFor(x => x.PhoneAreaCode, new { @class = "form-control", @style = "width: 40px;" }) -
+                        @Html.TextBoxFor(x => x.PhonePrefix, new { @class = "form-control", @style = "width: 40px;" }) -
+                        @Html.TextBoxFor(x => x.PhoneLineNumber, new { @class = "form-control", @style = "width: 50px;" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-1 control-label">Office</label>
+                <div class="col-sm-5">
+                    @Html.TextBoxFor(x => x.Office, new { @class = "form-control" })
+                </div>
+            </div>
+
+            if (Model.CanDelete())
+            {
+                <div class="form-group">
+                    @Html.LabelFor(x => x.Deleted, new { @class = "col-sm-1 control-label" })
+                    <div class="col-sm-5" style="padding-top: 3px;">
+                        @Html.CheckBoxFor(x => x.Deleted)
+                    </div>
+                </div>
+            }
+
+            <div class="form-group">
+                <div class="col-sm-offset-1 col-sm-5">
+                    <button type="submit" class="btn btn-primary" name="command" value="save">Save</button>
+                    @Html.RouteLink("Cancel", "Directory", null, new { @class = "btn btn-default" })
+                </div>
+            </div>
+
+            @Model.GetMessage()
+        }
+    </div>
+</div>
+
+@section scripts{
+    <script src="/common/scripts/jquery/jquery-ui-latest/js/jquery-ui-latest.min.js"></script>
+    <script src="/common/scripts/jquery/jquery.timepicker/js/jquery.timepicker.js"></script>
+
+    <script>
+        $(".time-text").timepicker({
+            "ampm": true,
+            "showButtonPanel": true,
+            "onClose": function (dateText, inst) {
+                var td = inst.input.parent();
+                var className = td.attr("class");
+                var row = td.parent();
+                row.siblings().each(function () {
+                    var tr = $(this);
+                    var chk = $(".day-checkbox", tr);
+                    if (chk.prop("checked")) {
+                        var cell = $("." + className, tr);
+                        var picker = $(".time-text", cell);
+                        if (picker.val() == "")
+                            picker.timepicker("setTime", dateText);
+                    }
+                });
+            }
+        });
+    </script>
+}
