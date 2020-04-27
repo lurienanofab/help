@@ -7,28 +7,7 @@
         <h3 class="panel-title">User Committee</h3>
     </div>
     <div class="panel-body">
-        <em style="color: #808080" class="loader">Loading...</em>
-        <iframe frameborder="0" src="http://docs.google.com/View?id=ddt6n6gc_18drcpkrhc" style="width: 100%; visibility: hidden" class="autoresize"></iframe>
+        <strong>Please see the LNF User Committee Wiki page:</strong><br />
+        <a style="font-size: large;" href="http://lnf-wiki.eecs.umich.edu/wiki/LNF_Users_Committee">http://lnf-wiki.eecs.umich.edu/wiki/LNF_Users_Committee</a>
     </div>
 </div>
-
-@section scripts{
-    @*<script src="/common/scripts/jquery/jquery.autoresize.js"></script>*@
-    <script>
-        var ifrm = $('iframe.autoresize');
-
-        $(window).on("resize", function(e){
-            ifrm.each(function () {
-                var $this = $(this);
-                var h = $(window).height();
-                $this.height(h - 200);
-            });
-        });
-
-        ifrm.on("load", function (e) {
-            $(".loader").remove();
-            ifrm.css({ "visibility": "visible" });
-            $(window).trigger("resize");
-        });
-    </script>
-}
