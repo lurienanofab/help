@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using Help.Models;
+using LNF;
 using System.Web.Mvc;
-using System.Configuration;
-using Help.Models;
-using LNF.Web;
 
 namespace Help.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : HelpController
     {
+        public HomeController(IProvider provider) : base(provider) { }
+
         public ActionResult Index()
         {
             return View();
@@ -28,7 +25,7 @@ namespace Help.Controllers
 
         public ActionResult Helpdesk(HelpdeskModel model)
         {
-            model.CurrentUser = HttpContext.CurrentUser();
+            model.CurrentUser = CurrentUser();
             return View(model);
         }
 
@@ -37,7 +34,7 @@ namespace Help.Controllers
             var model = new CalendarModel
             {
                 Calendar = cal,
-                CurrentUser = HttpContext.CurrentUser()
+                CurrentUser = CurrentUser()
             };
 
             return View(model);

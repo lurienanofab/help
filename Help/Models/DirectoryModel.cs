@@ -1,12 +1,8 @@
 ﻿using LNF.Data;
 using LNF.Help;
-using LNF.Impl;
-using LNF.Impl.Repository.Data;
-using LNF.Repository;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
@@ -132,17 +128,21 @@ namespace Help.Models
 
     public class DirectoryModel
     {
-        public IClient CurrentUser { get; set; }
         public string Command { get; set; }
-        public int ClientID { get; set; }
         public int StaffDirectoryID { get; set; }
+        public int ClientID { get; set; }
         public bool ViewDeleted { get; set; }
+        public string HoursText { get; set; }
         public string PhoneAreaCode { get; set; }
         public string PhonePrefix { get; set; }
         public string PhoneLineNumber { get; set; }
         public string Office { get; set; }
         public string HoursXML { get; set; }
         public bool Deleted { get; set; }
+        public IClient CurrentUser { get; set; }
+        public IStaffDirectory StaffDirectory { get; set; }
+        public IEnumerable<IStaffDirectory> DirectoryItems { get; set; }
+        public SelectListItem[] StaffSelectListItems { get; set; }
 
         private StaffTimeInfoCollection staffTime;
         private string message;
@@ -171,48 +171,32 @@ namespace Help.Models
 
         public string GetDisplayName()
         {
-            StaffDirectory sd = DA.Current.Single<StaffDirectory>(StaffDirectoryID);
-            if (sd != null)
-                return sd.Client.DisplayName;
-            else
-                throw new StaffDirectoryNotFoundException(StaffDirectoryID);
+            NotFoundCheck();
+            return StaffDirectory.DisplayName;
         }
 
         public int GetClientID()
         {
-            StaffDirectory sd = DA.Current.Single<StaffDirectory>(StaffDirectoryID);
-            if (sd != null)
-                return sd.Client.ClientID;
-            else
-                throw new StaffDirectoryNotFoundException(StaffDirectoryID);
+            NotFoundCheck();
+            return StaffDirectory.ClientID;
         }
 
-        public IStaffDirectory[] GetDirectoryItems()
+        public string GetHoursHtml(IStaffDirectory sd)
         {
-            var query = DA.Current.Query<StaffDirectory>()
-                .Where(x => x.Client.Active)
-                .ToArray()
-                .Where(x => ViewDeleted || !x.Deleted && x.Client.HasPriv(ClientPrivilege.Staff))
-                .OrderBy(x => x.Client.DisplayName);
-
-            return query.Select(x => new StaffDirectoryItem()
-            {
-                StaffDirectoryID = x.StaffDirectoryID,
-                ClientID = x.Client.ClientID,
-                ContactPhone = x.ContactPhone,
-                LName = x.Client.LName,
-                FName = x.Client.FName,
-                HoursXML = x.HoursXML,
-                Office = x.Office,
-                Deleted = x.Deleted,
-                LastUpdate = x.LastUpdate
-            }).ToArray();
+            StaffTimeInfoCollection staffTime = new StaffTimeInfoCollection(sd.HoursXML);
+            string[] lines = staffTime.GetHoursText();
+            string result = string.Empty;
+            if (lines.Length > 0)
+                result = "<div>" + string.Join("</div><div>", lines) + "</div>";
+            return result;
         }
 
-        public string GetWorkingHoursText(IStaffDirectory sd)
+        public string[] GetHoursText()
         {
-            StaffTimeInfoCollection result = new StaffTimeInfoCollection(sd.HoursXML);
-            return result.ToString();
+            NotFoundCheck();
+            StaffTimeInfoCollection staffTime = new StaffTimeInfoCollection(StaffDirectory.HoursXML);
+            string[] result = staffTime.GetHoursText();
+            return result;
         }
 
         public void Load()
@@ -226,12 +210,9 @@ namespace Help.Models
             if (StaffDirectoryID == 0)
                 return;
 
-            StaffDirectory sd = DA.Current.Single<StaffDirectory>(StaffDirectoryID);
+            NotFoundCheck();
 
-            if (sd == null)
-                throw new StaffDirectoryNotFoundException(StaffDirectoryID);
-
-            if (sd.Deleted)
+            if (StaffDirectory.Deleted)
             {
                 if (!CanDelete())
                 {
@@ -240,16 +221,18 @@ namespace Help.Models
                 }
             }
 
-            PhoneNumber phoneNumber = PhoneNumber.Parse(sd.ContactPhone);
+            PhoneNumber phoneNumber = PhoneNumber.Parse(StaffDirectory.ContactPhone);
             PhoneAreaCode = phoneNumber.AreaCode;
             PhonePrefix = phoneNumber.Prefix;
             PhoneLineNumber = phoneNumber.LineNumber;
-            Office = sd.Office;
-            Deleted = sd.Deleted;
+            Office = StaffDirectory.Office;
+            Deleted = StaffDirectory.Deleted;
         }
 
-        public bool Validate(IStaffDirectory sd)
+        public bool Validate()
         {
+            NotFoundCheck();
+
             message = string.Empty;
             int errors = 0;
 
@@ -263,31 +246,29 @@ namespace Help.Models
             if (errors > 0)
                 return false;
 
-            sd.ContactPhone = phoneNumber.ToString();
-            sd.Office = Office;
+            StaffDirectory.ContactPhone = phoneNumber.ToString();
+            StaffDirectory.Office = Office;
 
             return true;
         }
 
         public bool Save(NameValueCollection formData)
         {
-            IStaffDirectory sd;
-
             if (StaffDirectoryID == 0)
             {
                 if (CanAdd())
                 {
-                    Client c = DA.Current.Single<Client>(ClientID);
+                    //Client c = DataSession.Single<Client>(ClientID);
 
-                    if (c == null)
+                    if (ClientID == 0)
                     {
                         AppendAlert("You must select a client.");
                         return false;
                     }
 
-                    sd = new StaffDirectoryItem() { ClientID = c.ClientID };
+                    StaffDirectory = new StaffDirectoryItem() { ClientID = ClientID };
 
-                    if (!Validate(sd))
+                    if (!Validate())
                         return false;
                 }
                 else
@@ -298,56 +279,37 @@ namespace Help.Models
             }
             else
             {
-                sd = DA.Current.Single<StaffDirectory>(StaffDirectoryID).CreateModel<IStaffDirectory>();
+                NotFoundCheck();
 
-                if (sd == null)
-                    throw new StaffDirectoryNotFoundException(StaffDirectoryID);
-
-                if (IsReadOnly(sd))
+                if (IsReadOnly(StaffDirectory))
                 {
                     AppendAlert("You do not have permission to edit.", true);
                     return false;
                 }
                 else
                 {
-                    if (!Validate(sd))
+                    if (!Validate())
                         return false;
                 }
             }
 
-            if (GetHoursXML(sd, formData))
+            if (SetHoursXML(formData))
             {
-                if (sd.Deleted != Deleted)
+                if (StaffDirectory.Deleted != Deleted)
                 {
                     if (CanDelete())
-                        sd.Deleted = Deleted;
+                        StaffDirectory.Deleted = Deleted;
                     else
                     {
                         AppendAlert("You do not have permission to delete.");
                         return false;
                     }
                 }
-
-                sd.LastUpdate = DateTime.Now;
-
-                SaveStaffDirectory(sd);
             }
             else
                 return false;
 
             return true;
-        }
-
-        private void SaveStaffDirectory(IStaffDirectory sd)
-        {
-            var entity = DA.Current.Single<StaffDirectory>(sd.StaffDirectoryID);
-            entity.Client = DA.Current.Single<Client>(sd.ClientID);
-            entity.ContactPhone = sd.ContactPhone;
-            entity.Deleted = sd.Deleted;
-            entity.HoursXML = sd.HoursXML;
-            entity.LastUpdate = sd.LastUpdate;
-            entity.Office = sd.Office;
-            DA.Current.SaveOrUpdate(entity);
         }
 
         public string GetWorkHoursPartText(WorkHoursPart part)
@@ -367,37 +329,42 @@ namespace Help.Models
             }
         }
 
-        public bool GetHoursXML(IStaffDirectory sd, NameValueCollection formData)
+        public bool SetHoursXML(NameValueCollection formData)
         {
-            int errors = 0;
+            NotFoundCheck();
+            var staffTime = new StaffTimeInfoCollection(StaffDirectory.HoursXML);
+            var lines = HoursText.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            staffTime.SetHoursText(lines);
+            StaffDirectory.HoursXML = staffTime.ToXML().ToString();
 
-            StaffTimeInfoCollection staffTime = new StaffTimeInfoCollection(sd.HoursXML);
-            WorkHoursPart[] parts = { WorkHoursPart.MorningStart, WorkHoursPart.MorningEnd, WorkHoursPart.AfternoonStart, WorkHoursPart.AfternoonEnd };
+            //int errors = 0;
 
-            foreach (var timeInfo in staffTime)
-            {
-                string chkName = string.Format("{0}Checked", timeInfo.WorkHoursDayName());
-                timeInfo.Value.Checked = formData[chkName] == "on";
+            //WorkHoursPart[] parts = { WorkHoursPart.MorningStart, WorkHoursPart.MorningEnd, WorkHoursPart.AfternoonStart, WorkHoursPart.AfternoonEnd };
 
-                foreach (WorkHoursPart part in parts)
-                {
-                    string txtName = timeInfo.WorkHoursTimeTextBoxName(part);
+            //foreach (var timeInfo in staffTime)
+            //{
+            //    string chkName = string.Format("{0}Checked", timeInfo.WorkHoursDayName());
+            //    timeInfo.Value.Checked = formData[chkName] == "on";
 
-                    string val = formData[txtName];
+            //    foreach (WorkHoursPart part in parts)
+            //    {
+            //        string txtName = timeInfo.WorkHoursTimeTextBoxName(part);
 
-                    if (timeInfo.Value.Checked && string.IsNullOrEmpty(val))
-                    {
-                        AppendAlert(string.Format("Missing time for {0}: {1}", timeInfo.WorkHoursDayName(), GetWorkHoursPartText(part)));
-                        errors++;
-                    }
-                    else
-                    {
-                        timeInfo.SetValue(val, part);
-                    }
-                }
-            }
+            //        string val = formData[txtName];
 
-            sd.HoursXML = staffTime.ToXML().OuterXml;
+            //        if (timeInfo.Value.Checked && string.IsNullOrEmpty(val))
+            //        {
+            //            AppendAlert(string.Format("Missing time for {0}: {1}", timeInfo.WorkHoursDayName(), GetWorkHoursPartText(part)));
+            //            errors++;
+            //        }
+            //        else
+            //        {
+            //            timeInfo.SetValue(val, part);
+            //        }
+            //    }
+            //}
+
+            //sd.HoursXML = staffTime.ToXML().ToString();
 
             return true;
         }
@@ -416,12 +383,8 @@ namespace Help.Models
                     staffTime = new StaffTimeInfoCollection();
                 else
                 {
-                    StaffDirectory sd = DA.Current.Single<StaffDirectory>(StaffDirectoryID);
-
-                    if (sd == null)
-                        throw new StaffDirectoryNotFoundException(StaffDirectoryID);
-
-                    staffTime = new StaffTimeInfoCollection(sd.HoursXML);
+                    NotFoundCheck();
+                    staffTime = new StaffTimeInfoCollection(StaffDirectory.HoursXML);
                 }
             }
 
@@ -432,12 +395,8 @@ namespace Help.Models
         {
             if (staffTime == null)
             {
-                StaffDirectory sd = DA.Current.Single<StaffDirectory>(StaffDirectoryID);
-
-                if (sd == null)
-                    throw new StaffDirectoryNotFoundException(StaffDirectoryID);
-
-                staffTime = new StaffTimeInfoCollection(sd.HoursXML);
+                NotFoundCheck();
+                staffTime = new StaffTimeInfoCollection(StaffDirectory.HoursXML);
             }
 
             StaffTimeInfo timeInfo = staffTime[day];
@@ -464,26 +423,6 @@ namespace Help.Models
             return timeValue.Value.ToString();
         }
 
-        public SelectListItem[] GetStaffSelectListItems()
-        {
-            var query = DA.Current.Query<Client>().Where(x => x.Active).ToArray();
-            var staff = query.Where(x => x.HasPriv(ClientPrivilege.Staff));
-            var existing = DA.Current.Query<StaffDirectory>().Select(x => x.Client.ClientID).ToArray();
-            var result = staff.Where(x => !existing.Contains(x.ClientID)).Select(x => new SelectListItem() { Text = x.DisplayName, Value = x.ClientID.ToString() }).OrderBy(x => x.Text).ToArray();
-            return result;
-        }
-
-        public bool IsReadOnly(StaffDirectory item)
-        {
-            if (CurrentUser.HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer))
-                return false;
-
-            if (item.Client == CurrentUser)
-                return false;
-
-            return true;
-        }
-
         public bool IsReadOnly(IStaffDirectory item)
         {
             if (CurrentUser.HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer))
@@ -508,6 +447,12 @@ namespace Help.Models
         public bool CanDelete()
         {
             return CurrentUser.HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
+        }
+
+        public void NotFoundCheck()
+        {
+            if (StaffDirectory == null)
+                throw new StaffDirectoryNotFoundException(StaffDirectoryID);
         }
     }
 

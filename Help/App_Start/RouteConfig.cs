@@ -40,7 +40,7 @@ namespace Help
             routes.MapRoute(
                 name: "Directory",
                 url: "directory",
-                defaults: new { controller = "Directory", action = "Index" }
+                defaults: new { controller = "Directory", action = "Index", option = UrlParameter.Optional }
             );
 
             routes.MapRoute(

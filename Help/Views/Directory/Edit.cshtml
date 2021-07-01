@@ -76,40 +76,43 @@
                 <div class="form-group">
                     <label class="col-sm-1 control-label">Staff</label>
                     <div class="col-sm-5">
-                        @Html.DropDownListFor(x => x.ClientID, Model.GetStaffSelectListItems(), new { @class = "form-control" })
+                        @Html.DropDownListFor(x => x.ClientID, Model.StaffSelectListItems, new { @class = "form-control" })
                     </div>
                 </div>
             }
             <div class="form-group">
                 <label class="col-sm-1 control-label">Hours</label>
                 <div class="col-sm-5">
-                    <table class="table table-bordered hours-table">
-                        <tbody>
-                            <tr>
-                                <th colspan="2">&nbsp;</th>
-                                <th colspan="2" style="text-align: center;">Morning</th>
-                                <th colspan="2" style="text-align: center;">Afternoon</th>
-                            </tr>
-                            <tr>
-                                <th colspan="2">&nbsp;</th>
-                                <th style="text-align: center;">Start</th>
-                                <th style="text-align: center;">End</th>
-                                <th style="text-align: center;">Start</th>
-                                <th style="text-align: center;">End</th>
-                            </tr>
-                            @foreach (var timeInfo in Model.GetStaffTime())
-                            {
+                    <textarea id="HoursText" name="HoursText" class="form-control hours-text" style="height: 150px;">@string.Join(Environment.NewLine, Model.GetHoursText())</textarea>
+                    @*
+                        <table class="table table-bordered hours-table" style="display: none;">
+                            <tbody>
                                 <tr>
-                                    <th style="text-align: right;">@timeInfo.WorkHoursDayName()</th>
-                                    <td style="text-align: center;">@Html.WorkHoursDayCheckBox(timeInfo)</td>
-                                    <td class="morning-start">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.MorningStart)</td>
-                                    <td class="morning-end">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.MorningEnd)</td>
-                                    <td class="afternoon-start">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.AfternoonStart)</td>
-                                    <td class="afternoon-end">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.AfternoonEnd)</td>
+                                    <th colspan="2">&nbsp;</th>
+                                    <th colspan="2" style="text-align: center;">Morning</th>
+                                    <th colspan="2" style="text-align: center;">Afternoon</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                                <tr>
+                                    <th colspan="2">&nbsp;</th>
+                                    <th style="text-align: center;">Start</th>
+                                    <th style="text-align: center;">End</th>
+                                    <th style="text-align: center;">Start</th>
+                                    <th style="text-align: center;">End</th>
+                                </tr>
+                                @foreach (var timeInfo in Model.GetStaffTime())
+                                {
+                                    <tr>
+                                        <th style="text-align: right;">@timeInfo.WorkHoursDayName()</th>
+                                        <td style="text-align: center;">@Html.WorkHoursDayCheckBox(timeInfo)</td>
+                                        <td class="morning-start">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.MorningStart)</td>
+                                        <td class="morning-end">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.MorningEnd)</td>
+                                        <td class="afternoon-start">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.AfternoonStart)</td>
+                                        <td class="afternoon-end">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.AfternoonEnd)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    *@
                 </div>
             </div>
 

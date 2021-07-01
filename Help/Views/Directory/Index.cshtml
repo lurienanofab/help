@@ -1,4 +1,5 @@
-﻿@model Help.Models.DirectoryModel
+﻿@using Help.Models;
+@model DirectoryModel
 @{
     ViewBag.Title = "Directory";
 }
@@ -43,7 +44,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model.GetDirectoryItems())
+                @foreach (var item in Model.DirectoryItems)
                 {
                     <tr class="@Html.Raw(item.Deleted ? "deleted" : string.Empty)">
                         @if (Model.IsReadOnly(item))
@@ -54,7 +55,7 @@
                         {
                             <td>@Html.RouteLink(item.DisplayName, "DirectoryEdit", new { StaffDirectoryID = item.StaffDirectoryID }, null)</td>
                         }
-                        <td>@Html.Raw(Model.GetWorkingHoursText(item))</td>
+                        <td>@Html.Raw(Model.GetHoursHtml(item))</td>
                         <td><a href="mailto:@item.ContactEmail">@item.ContactEmail</a></td>
                         <td><a href="tel:@Model.GetPhone(item)">@Model.GetPhone(item, "{0}-{1}-{2}")</a></td>
                         <td>@item.Office</td>
@@ -69,7 +70,7 @@
     <script>
         $(".view-deleted").on("change", function (e) {
             var chk = $(this);
-            
+
             var now = new Date();
             var expires = new Date(now.setFullYear(now.getFullYear() + 1));
 
