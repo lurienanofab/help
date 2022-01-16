@@ -54,6 +54,10 @@
             background-color: #f5f5f5;
             border-color: #ddd;
         }
+
+        .hours-text{
+            font-family: Consolas, 'Courier New', monospace;
+        }
     </style>
 }
 
@@ -61,11 +65,11 @@
     <div class="panel-heading">
         @if (Model.StaffDirectoryID == 0)
         {
-            <h3 class="panel-title">@Html.RouteLink("Directory", "Directory") / New</h3>
+            <h3 class="panel-title">@Html.ActionLink("Directory", "Index", "Directory") / New</h3>
         }
         else
         {
-            <h3 class="panel-title">@Html.RouteLink("Directory", "Directory") / Edit: @Model.GetDisplayName() [@Model.GetClientID()]</h3>
+            <h3 class="panel-title">@Html.ActionLink("Directory", "Index", "Directory") / Edit: @Model.GetDisplayName() [@Model.GetClientID()]</h3>
         }
     </div>
     <div class="panel-body">
@@ -81,37 +85,42 @@
                 </div>
             }
             <div class="form-group">
+                <div class="col-sm-offset-1 col-sm-11">
+                    <em class="text-muted">Properly formated URLs (starting with https:// or http://) will be converted into links.</em>
+                </div>
+            </div>
+            <div class="form-group">
                 <label class="col-sm-1 control-label">Hours</label>
                 <div class="col-sm-5">
                     <textarea id="HoursText" name="HoursText" class="form-control hours-text" style="height: 150px;">@string.Join(Environment.NewLine, Model.GetHoursText())</textarea>
                     @*
-                        <table class="table table-bordered hours-table" style="display: none;">
-                            <tbody>
+                    <table class="table table-bordered hours-table" style="display: none;">
+                        <tbody>
+                            <tr>
+                                <th colspan="2">&nbsp;</th>
+                                <th colspan="2" style="text-align: center;">Morning</th>
+                                <th colspan="2" style="text-align: center;">Afternoon</th>
+                            </tr>
+                            <tr>
+                                <th colspan="2">&nbsp;</th>
+                                <th style="text-align: center;">Start</th>
+                                <th style="text-align: center;">End</th>
+                                <th style="text-align: center;">Start</th>
+                                <th style="text-align: center;">End</th>
+                            </tr>
+                            @foreach (var timeInfo in Model.GetStaffTime())
+                            {
                                 <tr>
-                                    <th colspan="2">&nbsp;</th>
-                                    <th colspan="2" style="text-align: center;">Morning</th>
-                                    <th colspan="2" style="text-align: center;">Afternoon</th>
+                                    <th style="text-align: right;">@timeInfo.WorkHoursDayName()</th>
+                                    <td style="text-align: center;">@Html.WorkHoursDayCheckBox(timeInfo)</td>
+                                    <td class="morning-start">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.MorningStart)</td>
+                                    <td class="morning-end">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.MorningEnd)</td>
+                                    <td class="afternoon-start">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.AfternoonStart)</td>
+                                    <td class="afternoon-end">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.AfternoonEnd)</td>
                                 </tr>
-                                <tr>
-                                    <th colspan="2">&nbsp;</th>
-                                    <th style="text-align: center;">Start</th>
-                                    <th style="text-align: center;">End</th>
-                                    <th style="text-align: center;">Start</th>
-                                    <th style="text-align: center;">End</th>
-                                </tr>
-                                @foreach (var timeInfo in Model.GetStaffTime())
-                                {
-                                    <tr>
-                                        <th style="text-align: right;">@timeInfo.WorkHoursDayName()</th>
-                                        <td style="text-align: center;">@Html.WorkHoursDayCheckBox(timeInfo)</td>
-                                        <td class="morning-start">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.MorningStart)</td>
-                                        <td class="morning-end">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.MorningEnd)</td>
-                                        <td class="afternoon-start">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.AfternoonStart)</td>
-                                        <td class="afternoon-end">@Html.WorkHoursTimeTextBox(timeInfo, WorkHoursPart.AfternoonEnd)</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                            }
+                        </tbody>
+                    </table>
                     *@
                 </div>
             </div>
@@ -147,7 +156,7 @@
             <div class="form-group">
                 <div class="col-sm-offset-1 col-sm-5">
                     <button type="submit" class="btn btn-primary" name="command" value="save">Save</button>
-                    @Html.RouteLink("Cancel", "Directory", null, new { @class = "btn btn-default" })
+                    @Html.ActionLink("Cancel", "Index", "Directory", null, new { @class = "btn btn-default" })
                 </div>
             </div>
 

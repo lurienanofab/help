@@ -71,7 +71,7 @@
                     <div class="collapse navbar-collapse" id="bs-navbar-collapse-1">
                         <ul class="nav nav-pills nav-stacked">
                             @Html.NavigationLink("Home", "Index", "Home", ignoreAction: false)
-                            @Html.NavigationLink("Fees", "Fees", "Home", ignoreAction: false)
+                            @Html.NavigationLink("Fees", "Index", "Fees", ignoreAction: true)
                             @Html.NavigationLink("User Committee", "UserCommittee", "Home", ignoreAction: false)
                             @Html.NavigationLink("Staff Directory", "Index", "Directory")
                             @Html.NavigationLink("Staff Calendar", "Calendar", "Home", new { cal = "staff" }, ignoreAction: false, ignoreRouteValues: false)

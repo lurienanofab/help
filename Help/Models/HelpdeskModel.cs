@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Configuration;
-using LNF.Data;
+﻿using LNF.Data;
 using LNF.Helpdesk;
-using LNF.Repository;
-using LNF.Impl.Repository.Data;
+using System.Configuration;
 
 namespace Help.Models
 {

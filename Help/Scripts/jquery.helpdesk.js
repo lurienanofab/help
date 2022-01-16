@@ -113,10 +113,10 @@
                 });
             }
 
-            var getTickets = function (email) {
+            var getTickets = function (email, status) {
                 return $.ajax({
                     url: apiUrl(),
-                    data: { "command": "select-tickets-by-email", "email": email },
+                    data: { "command": "select-tickets-by-email", "email": email, "status": status },
                     type: "POST",
                     dataType: "json"
                 });
@@ -175,7 +175,11 @@
 
             var getSearchEmail = function () {
                 return $(".email-search-textbox", $this).val();
-            }
+            };
+
+            var getSearchStatus = function () {
+                return $(".email-search-status-select", $this).val();
+            };
 
             console.log($(".ticket-table", $this));
             table = $(".ticket-table", $this).dataTable({
@@ -204,7 +208,7 @@
                 "language": { "zeroRecords": "No tickets were found." },
                 "ajax": function (data, callback, settings) {
                     $(".message", $this).html("");
-                    getTickets(getSearchEmail()).done(function (d, textStatus, jqXHR) {
+                    getTickets(getSearchEmail(), getSearchStatus()).done(function (d, textStatus, jqXHR) {
                         callback({ "data": d.tickets });
                     }).fail(function (jqXHR, textStatus, errorThrown) {
                         var errmsg = (jqXHR.responseJSON && jqXHR.responseJSON.message) ? jqXHR.responseJSON.message : errorThrown;

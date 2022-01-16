@@ -1,0 +1,67 @@
+﻿@using Help.Models;
+@model FeesModel
+@{
+    ViewBag.Title = "Admin";
+}
+
+@section styles{
+    <style>
+        .delete-button {
+            color: #b94a48;
+            background-color: #f2dede;
+            border-color: #ac2925;
+        }
+    </style>
+}
+
+<h2>Fees Admin</h2>
+
+<div>
+    <a href="@Url.Action("Index", "Fees")">&larr; Return</a>
+</div>
+
+<hr />
+
+@using (Html.BeginForm("AddSection", "Fees", null, FormMethod.Post, null))
+{
+    <div class="row" style="margin-bottom: 20px;">
+        <div class="col-sm-6">
+            <div class="input-group">
+                <input type="text" class="form-control add-section-title" placeholder="Add Section" name="AddSectionTitle" />
+                <span class="input-group-btn">
+                    <button class="btn btn-default add-section-button" type="submit">Add</button>
+                </span>
+            </div>
+        </div>
+    </div>
+}
+
+<div style="margin-bottom: 20px;">
+    <div class="row">
+        <div class="col-sm-6">
+            @if (Model.Sections.Count() > 0)
+            {
+                <ul class="list-group">
+                    @foreach (var sec in Model.Sections)
+                    {
+                        <li class="list-group-item">
+                            <strong>@sec.Title [@sec.Links.Count() links]</strong>
+                            <hr />
+                            <div class="text-right">
+                                @using (Html.BeginForm("DeleteSection", "Fees", new { id = sec.Id.ToString("N") }, FormMethod.Post, new { @class = "form-inline" }))
+                                {
+                                    @Html.ActionLink("Edit", "AdminEditSection", new { id = sec.Id.ToString("N") }, new { @class = "btn btn-default btn-sm" })
+                                    <button type="submit" class="btn btn-default btn-sm delete-button">Delete</button>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <em class="text-muted">No sections have been added yet.</em>
+            }
+        </div>
+    </div>
+</div>

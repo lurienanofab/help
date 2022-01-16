@@ -13,6 +13,17 @@
         .table-hover > tbody > tr.deleted:hover > td {
             background-color: #ffcccc;
         }
+
+        .hours-text {
+            font-family: Consolas, 'Courier New', monospace;
+            border: none;
+            background-color: unset;
+            padding: 0;
+        }
+
+            .hours-text a {
+                text-decoration: underline;
+            }
     </style>
 }
 
@@ -24,7 +35,7 @@
         @if (Model.CanAdd())
         {
             <div style="margin-bottom: 20px;">
-                @Html.RouteLink("Add Staff", "DirectoryEdit", null, new { @class = "btn btn-primary" })
+                @Html.ActionLink("Add Staff", "Edit", "Directory", null, new { @class = "btn btn-primary" })
             </div>
         }
         @if (Model.CanViewDeleted())
@@ -53,9 +64,11 @@
                         }
                         else
                         {
-                            <td>@Html.RouteLink(item.DisplayName, "DirectoryEdit", new { StaffDirectoryID = item.StaffDirectoryID }, null)</td>
+                            <td>@Html.ActionLink(item.DisplayName, "Edit", "Directory", new { StaffDirectoryID = item.StaffDirectoryID }, null)</td>
                         }
-                        <td>@Html.Raw(Model.GetHoursHtml(item))</td>
+                        <td>
+                            <pre class="hours-text">@Html.Raw(Model.GetHoursHtml(item))</pre>
+                        </td>
                         <td><a href="mailto:@item.ContactEmail">@item.ContactEmail</a></td>
                         <td><a href="tel:@Model.GetPhone(item)">@Model.GetPhone(item, "{0}-{1}-{2}")</a></td>
                         <td>@item.Office</td>

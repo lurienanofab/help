@@ -14,6 +14,7 @@ namespace Help.Controllers
     {
         public DirectoryController(IProvider provider) : base(provider) { }
 
+        [Route("directory")]
         public ActionResult Index(DirectoryModel model, string option = null)
         {
             if (option == "update-hours-text")
@@ -29,7 +30,7 @@ namespace Help.Controllers
                     Provider.Data.Client.SaveStaffDirectory(sd);
                 }
 
-                return RedirectToRoute("Directory", routeValues: null);
+                return RedirectToAction("Index", "Directory", routeValues: null);
             }
 
             SetCurrentUser(model);
@@ -41,22 +42,25 @@ namespace Help.Controllers
             return View(model);
         }
 
-        public ActionResult Staff(DirectoryModel model)
+        [Route("staff")]
+        public ActionResult Staff()
         {
-            return RedirectToRoutePermanent("Directory", routeValues: null);
+            return RedirectToActionPermanent("Index", "Directory", routeValues: null);
         }
 
+        [Route("directory/edit/{StaffDirectoryID?}")]
         public ActionResult Edit(DirectoryModel model)
         {
             SetCurrentUser(model);
             SetStaffDirectory(model);
+            SetStaffSelectListItems(model);
 
             if (model.Command == "save")
             {
-                if (model.Save(Request.Form))
+                if (model.Save())
                 {
                     Provider.Data.Client.SaveStaffDirectory(model.StaffDirectory);
-                    return RedirectToRoute("Directory");
+                    return RedirectToAction("Index", "Directory");
                 }
             }
             else

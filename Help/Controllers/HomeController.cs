@@ -8,28 +8,27 @@ namespace Help.Controllers
     {
         public HomeController(IProvider provider) : base(provider) { }
 
+        [Route("")]
         public ActionResult Index()
         {
             return View();
         }
 
-        public ActionResult Fees()
-        {
-            return View();
-        }
-
+        [Route("lnfc")]
         public ActionResult UserCommittee()
         {
             return View();
         }
 
+        [Route("helpdesk")]
         public ActionResult Helpdesk(HelpdeskModel model)
         {
             model.CurrentUser = CurrentUser();
             return View(model);
         }
 
-        public ActionResult Calendar(string cal)
+        [Route("calendar/{cal?}")]
+        public ActionResult Calendar(string cal = "staff")
         {
             var model = new CalendarModel
             {

@@ -1,0 +1,47 @@
+﻿@using Help.Models;
+@model FeesModel
+@{
+    ViewBag.Title = "Fees";
+}
+
+<div style="margin-bottom: 20px;">
+    @if (Model.Sections.Count() == 0)
+    {
+        <em class="text-muted">No sections have been added yet.</em>
+    }
+    else
+    {
+        <div class="sections">
+            @foreach (var sec in Model.Sections)
+            {
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">@sec.Title</h3>
+                    </div>
+                    <div class="panel-body">
+                        @if (sec.Links.Count() == 0)
+                        {
+                            <em class="text-muted">No links have been added yet.</em>
+                        }
+                        else
+                        {
+                            <ul class="help-list">
+                                @foreach (var link in sec.Links)
+                                {
+                                    <li><a href="@link.Url" target="_blank">@link.Text</a></li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (Model.IsAdmin)
+{
+    <div style="margin-bottom: 20px;">
+        @Html.ActionLink("Admin", "Admin", "Fees")
+    </div>
+}

@@ -2,11 +2,10 @@
 using LNF.Help;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
-using System.Web.Mvc.Html;
 
 namespace Help.Models
 {
@@ -52,9 +51,9 @@ namespace Help.Models
                 return new PhoneNumber() { isInvalid = false, isEmpty = true };
 
             string defaultAreaCode = "734";
-            string areaCode = string.Empty;
-            string prefix = string.Empty;
-            string lineNumber = string.Empty;
+            string areaCode;
+            string prefix;
+            string lineNumber;
 
             var temp = phoneNumber.Trim().Replace("(", string.Empty).Replace(")", string.Empty).Replace(" ", "-");
             var splitter = temp.Split('-');
@@ -187,12 +186,31 @@ namespace Help.Models
             string[] lines = staffTime.GetHoursText();
             string result = string.Empty;
             if (lines.Length > 0)
-                result = "<div>" + string.Join("</div><div>", lines) + "</div>";
+                result = string.Join(string.Empty, lines.Select(x => GetLineHtml(x)).ToArray());
+            return result;
+        }
+
+        private string GetLineHtml(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+                return "<br/>";
+            else
+                return $"<div>{ConvertUrls(s)}</div>";
+        }
+
+        private string ConvertUrls(string s)
+        {
+            var pattern = @"(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?";
+            var result = Regex.Replace(s, pattern, x => $"<a href=\"{x.Groups[0].Value}\">{x.Groups[0].Value}</a>");
             return result;
         }
 
         public string[] GetHoursText()
         {
+            // this is zero when a new staff is being added
+            if (StaffDirectoryID == 0)
+                return new string[0];
+
             NotFoundCheck();
             StaffTimeInfoCollection staffTime = new StaffTimeInfoCollection(StaffDirectory.HoursXML);
             string[] result = staffTime.GetHoursText();
@@ -252,7 +270,7 @@ namespace Help.Models
             return true;
         }
 
-        public bool Save(NameValueCollection formData)
+        public bool Save()
         {
             if (StaffDirectoryID == 0)
             {
@@ -293,7 +311,7 @@ namespace Help.Models
                 }
             }
 
-            if (SetHoursXML(formData))
+            if (SetHoursXML())
             {
                 if (StaffDirectory.Deleted != Deleted)
                 {
@@ -329,7 +347,7 @@ namespace Help.Models
             }
         }
 
-        public bool SetHoursXML(NameValueCollection formData)
+        public bool SetHoursXML()
         {
             NotFoundCheck();
             var staffTime = new StaffTimeInfoCollection(StaffDirectory.HoursXML);
@@ -400,7 +418,7 @@ namespace Help.Models
             }
 
             StaffTimeInfo timeInfo = staffTime[day];
-            StaffTimeValue timeValue = null;
+            StaffTimeValue timeValue;
 
             switch (part)
             {
@@ -453,89 +471,6 @@ namespace Help.Models
         {
             if (StaffDirectory == null)
                 throw new StaffDirectoryNotFoundException(StaffDirectoryID);
-        }
-    }
-
-    public static class StaffTimeInfoHelper
-    {
-        public static string WorkHoursDayName(this KeyValuePair<DayOfWeek, StaffTimeInfo> kvp)
-        {
-            return Enum.GetName(typeof(DayOfWeek), kvp.Key);
-        }
-
-        public static IHtmlString WorkHoursDayCheckBox(this HtmlHelper helper, KeyValuePair<DayOfWeek, StaffTimeInfo> kvp)
-        {
-            string name = string.Format("{0}Checked", kvp.WorkHoursDayName());
-            TagBuilder builder = new TagBuilder("input");
-            builder.Attributes.Add("type", "checkbox");
-            builder.Attributes.Add("name", name);
-            builder.Attributes.Add("id", name);
-            if (kvp.Value.Checked)
-                builder.Attributes.Add("checked", "checked");
-            builder.AddCssClass("day-checkbox");
-            return new HtmlString(builder.ToString());
-        }
-
-        public static string WorkHoursTimeTextBoxName(this KeyValuePair<DayOfWeek, StaffTimeInfo> kvp, WorkHoursPart part)
-        {
-            return string.Format("{0}{1}", kvp.WorkHoursDayName(), Enum.GetName(typeof(WorkHoursPart), part));
-        }
-
-        public static IHtmlString WorkHoursTimeTextBox(this HtmlHelper helper, KeyValuePair<DayOfWeek, StaffTimeInfo> kvp, WorkHoursPart part)
-        {
-            string name = kvp.WorkHoursTimeTextBoxName(part);
-
-            switch (part)
-            {
-                case WorkHoursPart.MorningStart:
-                    return helper.TextBox(name, kvp.Value.AM.Start, new { @class = "time-text form-control" });
-                case WorkHoursPart.MorningEnd:
-                    return helper.TextBox(name, kvp.Value.AM.End, new { @class = "time-text form-control", @data_toggle = "popover" });
-                case WorkHoursPart.AfternoonStart:
-                    return helper.TextBox(name, kvp.Value.PM.Start, new { @class = "time-text form-control", @data_toggle = "popover" });
-                case WorkHoursPart.AfternoonEnd:
-                    return helper.TextBox(name, kvp.Value.PM.End, new { @class = "time-text form-control", @data_toggle = "popover" });
-                default:
-                    throw new ArgumentException("part");
-            }
-        }
-
-        public static StaffTimeValue TimeValue(this KeyValuePair<DayOfWeek, StaffTimeInfo> kvp, WorkHoursPart part)
-        {
-            switch (part)
-            {
-                case WorkHoursPart.MorningStart:
-                    return kvp.Value.AM.Start;
-                case WorkHoursPart.MorningEnd:
-                    return kvp.Value.AM.End;
-                case WorkHoursPart.AfternoonStart:
-                    return kvp.Value.PM.Start;
-                case WorkHoursPart.AfternoonEnd:
-                    return kvp.Value.PM.End;
-                default:
-                    throw new ArgumentException("part");
-            }
-        }
-
-        public static TimeRange TimeRange(this KeyValuePair<DayOfWeek, StaffTimeInfo> kvp, WorkHoursPart part)
-        {
-            switch (part)
-            {
-                case WorkHoursPart.MorningStart:
-                case WorkHoursPart.MorningEnd:
-                    return kvp.Value.AM;
-                case WorkHoursPart.AfternoonStart:
-                case WorkHoursPart.AfternoonEnd:
-                    return kvp.Value.PM;
-                default:
-                    throw new ArgumentException("part");
-            }
-        }
-
-        public static void SetValue(this KeyValuePair<DayOfWeek, StaffTimeInfo> kvp, string value, WorkHoursPart part)
-        {
-            StaffTimeValue timeValue = kvp.TimeValue(part);
-            timeValue.Value = StaffTimeValue.Parse(value);
         }
     }
 }

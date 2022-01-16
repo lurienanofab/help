@@ -1,0 +1,129 @@
+﻿@using Help.Models;
+@model FeeAdminModel
+@{
+    ViewBag.Title = "Admin: Edit Section";
+}
+
+
+@section styles{
+    <style>
+        .delete-button {
+            color: #b94a48;
+            background-color: #f2dede;
+            border-color: #ac2925;
+        }
+    </style>
+}
+
+<h2>Edit Section</h2>
+
+<div>
+    <a href="@Url.Action("Admin", "Fees", null)">&larr; Return</a>
+</div>
+
+<hr />
+
+<div style="margin-bottom: 20px;">
+    @if (Model.FeeSection != null)
+    {
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="section-title" style="margin-bottom: 20px;">
+                    <h3>Title</h3>
+                    @using (Html.BeginForm("UpdateSection", "Fees", new { id = Model.FeeSection.Id.ToString("N") }, FormMethod.Post, null))
+                    {
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="@Model.FeeSection.Title" placeholder="Title" name="SectionTitle" />
+                            <span class="input-group-btn">
+                                <button class="btn btn-default add-section-button" type="submit">Update</button>
+                            </span>
+                        </div>
+                    }
+                </div>
+
+                <div class="fee-links" style="margin-bottom: 20px;">
+                    <h3>Links</h3>
+
+                    <div class="link panel panel-default">
+                        <div class="panel-heading">Add Link</div>
+                        <div class="panel-body">
+                            @using (Html.BeginForm("AddSectionLink", "Fees", new { id = Model.FeeSection.Id.ToString("N") }, FormMethod.Post, new { @class = "form-horizontal" }))
+                            {
+                                <div class="form-group">
+                                    <label for="LinkText" class="col-sm-1 control-label">Text</label>
+                                    <div class="col-sm-11">
+                                        <input type="text" class="form-control link-text" placeholder="Text" name="AddLinkText" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="LinkUrl" class="col-sm-1 control-label">Url</label>
+                                    <div class="col-sm-11">
+                                        <input type="text" class="form-control link-url" placeholder="Url" name="AddLinkUrl" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-offset-1 col-sm-11">
+                                        <button type="submit" class="btn btn-default btn-sm" value="update" name="Command">Add Link</button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @if (Model.FeeSection.Links.Count() > 0)
+                    {
+                        for (var i = 0; i < Model.FeeSection.Links.Count(); i++)
+                        {
+                            <div class="link panel panel-default">
+                                <div class="panel-heading">Link #@(i + 1)</div>
+                                <div class="panel-body">
+                                    @using (Html.BeginForm("UpdateSectionLink", "Fees", new { id = Model.FeeSection.Id.ToString("N"), index = i }, FormMethod.Post, new { @class = "form-horizontal" }))
+                                    {
+                                        <div class="form-group">
+                                            <label for="LinkText" class="col-sm-1 control-label">Text</label>
+                                            <div class="col-sm-11">
+                                                <input type="text" class="form-control link-text" value="@Model.FeeSection.Links.ElementAt(i).Text" placeholder="Text" name="LinkText" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="LinkUrl" class="col-sm-1 control-label">Url</label>
+                                            <div class="col-sm-11">
+                                                <input type="text" class="form-control link-url" value="@Model.FeeSection.Links.ElementAt(i).Url" placeholder="Url" name="LinkUrl" />
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-sm-offset-1 col-sm-11">
+                                                <button type="submit" class="btn btn-default btn-sm" value="update" name="Command">Update Link</button>
+                                                <button type="submit" class="btn btn-default btn-sm delete-button" value="delete" name="Command">Delete Link</button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <em class="text-muted">No links have been added yet.</em>
+                    }
+                </div>
+
+                <hr />
+
+                <div>
+                    @using (Html.BeginForm("DeleteSection", "Fees", new { id = Model.FeeSection.Id.ToString("N") }, FormMethod.Post, null))
+                    {
+                        @Html.ActionLink("Return", "Admin", "Fees", null, new { @class = "btn btn-default" })
+                        <button type="submit" class="btn btn-default delete-button">Delete Section</button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger" role="alert">
+            No section was found with Id @Model.Id
+        </div>
+    }
+</div>
